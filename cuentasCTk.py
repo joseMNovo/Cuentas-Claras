@@ -14,8 +14,9 @@ from datetime import datetime
 class CuentasClaras:
     def __init__(self):
         self.ventana = CTk()
-        self.ventana.config(width=500, height=150)
+        self.ventana.config(width=1200, height=900)
         self.ventana.title("By Giuseppe")
+        self.ventana.resizable(False, False)
         
         self.is_dark_mode = True
         self.historial_file = "historial_cuentas.json"
@@ -42,14 +43,15 @@ class CuentasClaras:
         
     def setup_calculadora_tab(self):
         # Título
-        self.ettitulo = CTkLabel(self.tab_calculadora, text="------------- Cuentas Claras -------------")
+        self.ettitulo = CTkLabel(self.tab_calculadora, text="C U E N T A S   C L A R A S", 
+                                 font=("Helvetica", 12, "bold"))
         self.ettitulo.grid(row=0, columnspan=2)
         
         # Entradas
         vcmd = (self.ventana.register(self.solo_numeros), '%S')
-        self.cajauno = self.crear_entrada(1, "Sueldo 1", "red", vcmd, self.tab_calculadora)
-        self.cajados = self.crear_entrada(2, "Sueldo 2", "green", vcmd, self.tab_calculadora) 
-        self.cajatres = self.crear_entrada(3, "A pagar", "blue", vcmd, self.tab_calculadora)
+        self.cajauno = self.crear_entrada(1, "Sueldo 1", "gray", vcmd, self.tab_calculadora)
+        self.cajados = self.crear_entrada(2, "Sueldo 2", "gray", vcmd, self.tab_calculadora) 
+        self.cajatres = self.crear_entrada(3, "A pagar", "darkgreen", vcmd, self.tab_calculadora)
         
         # Frame de botones
         self.crear_frame_botones()
@@ -58,9 +60,12 @@ class CuentasClaras:
         self.crear_frame_cat()
 
     def setup_historial_tab(self):
+        self.tab_historial.grid_columnconfigure(0, weight=1)
+        self.tab_historial.grid_rowconfigure(0, weight=1)
+
         # Crear Treeview
         columns = ("ID", "Fecha", "Sueldo 1", "Sueldo 2", "Total", "Pago 1", "Pago 2")
-        self.tree = ttk.Treeview(self.tab_historial, columns=columns, show="headings")
+        self.tree = ttk.Treeview(self.tab_historial, columns=columns, show="headings", height=15)  # height controla el número de filas visibles
         
         # Configurar estilo del Treeview
         style = ttk.Style()
@@ -84,15 +89,16 @@ class CuentasClaras:
             background=heading_bg,
             foreground=fg_color,
             relief="flat",
-            font=('Arial', 10, 'bold'))
+            font=('Helvetica', 16, 'bold'))
             
         # Configurar colores y fuentes para el contenido
         style.configure("Treeview",
             background=tree_bg,
             foreground=fg_color,
             fieldbackground=tree_bg,
-            font=('Arial', 9),
-            rowheight=25)
+            font=('Helvetica', 13),
+            rowheight=35),
+            
             
         # Configurar selección
         style.map('Treeview',
@@ -103,16 +109,16 @@ class CuentasClaras:
         for col in columns:
             self.tree.heading(col, text=col)
             if col == "ID":
-                self.tree.column(col, width=50)
+                self.tree.column(col, width=70)
             else:
-                self.tree.column(col, width=120)
+                self.tree.column(col, width=140)
             
         # Configurar colores alternados para las filas
         self.tree.tag_configure('oddrow', background=odd_row_bg)
         self.tree.tag_configure('evenrow', background=even_row_bg)
             
         self.tree.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        
+
         # Agregar scrollbar con estilo
         style.configure("Vertical.TScrollbar",
             background=heading_bg,
@@ -213,9 +219,9 @@ class CuentasClaras:
         blimpiar = CTkButton(frame, text="Limpiar", command=self.limpiar)
         blimpiar.grid(row=0, column=1, pady=10, padx=10)
         
-        appearance_menu = CTkOptionMenu(frame, values=["Dark", "Light"], 
+        """ appearance_menu = CTkOptionMenu(frame, values=["Dark", "Light"], 
                                       command=self.change_appearance_mode_event)
-        appearance_menu.grid(row=0, column=3, padx=10)
+        appearance_menu.grid(row=0, column=3, padx=10) """
         
     def crear_frame_cat(self):
         self.cat_frame = CTkFrame(self.tab_calculadora, corner_radius=50)
@@ -229,10 +235,23 @@ class CuentasClaras:
         self.ventana.bind('<Escape>', lambda e: self.ventana.focus_set())
         
     def get_cat_fact(self):
-        numero = random.randint(30, 100)
-        os.system('cls' if os.name == 'nt' else 'clear')
-        r = requests.get(f'https://catfact.ninja/fact?max_length={numero}')
-        return f"{r.json()['fact']} 🐾"
+        default_facts = [
+            "Cats spend 70% of their lives sleeping. Purrfect life! 😺",
+            "A cat's purr can heal bones and muscles. Magical creatures! 🐱",
+            "Cats can jump up to six times their length. Super cat powers! 🦸‍♂️",
+            "A group of cats is called a clowder. Meow-velous! ✨",
+            "Cats can't taste sweetness. But they're sweet enough! 💝"
+        ]
+        
+        try:
+            numero = random.randint(30, 100)
+            r = requests.get(f'https://catfact.ninja/fact?max_length={numero}', timeout=5)
+            if r.status_code == 200 and 'fact' in r.json():
+                return f"{r.json()['fact']} 🐾"
+            else:
+                return f"{random.choice(default_facts)}"
+        except:
+            return f"{random.choice(default_facts)}"
         
     def calcular(self, event=None):
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -291,7 +310,7 @@ class CuentasClaras:
         self.etcinco.grid(row=5, column=0, pady=10)
         
         self.etseis = CTkLabel(self.tab_calculadora, text=f"${str(primer_pago).replace('.',',')}", 
-                              font=("Arial", 15), text_color="red")
+                              font=("Arial", 15), text_color="green")
         self.etseis.grid(row=4, column=1)
         
         self.etsiete = CTkLabel(self.tab_calculadora, text=f"${str(segundo_pago).replace('.',',')}", 
