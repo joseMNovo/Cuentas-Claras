@@ -7,6 +7,8 @@ import requests
 import random
 import os
 
+#pyinstaller --onefile --windowed --noconsole --icon=money.ico cuentasCTk.py
+
 class CuentasClaras:
     def __init__(self):
         self.ventana = CTk()
