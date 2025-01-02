@@ -204,7 +204,7 @@ class CuentasClaras:
         
         # Entry
         entry = CTkEntry(parent, width=300, height=40, text_color="silver", 
-                        font=("Arial", 15), validate='key', validatecommand=vcmd)
+                        font=("Arial", 15), validate='key')
         entry.grid(row=row, column=1, pady=10, padx=10)
         
         return entry
@@ -233,6 +233,14 @@ class CuentasClaras:
     def setup_bindings(self):
         self.ventana.bind('<Return>', self.calcular)
         self.ventana.bind('<Escape>', lambda e: self.ventana.focus_set())
+        # Habilitar copiar/pegar para cada campo de entrada
+        for entrada in [self.cajauno, self.cajados, self.cajatres]:
+            entrada.bind("<Control-c>", self.copiar)
+            entrada.bind("<Control-x>", self.cortar)
+            entrada.bind("<Control-v>", self.pegar)
+            entrada.bind("<Command-c>", self.copiar)  # Mac
+            entrada.bind("<Command-x>", self.cortar)  # Mac
+            entrada.bind("<Command-v>", self.pegar)  # Mac
         
     def get_cat_fact(self):
         default_facts = [
@@ -269,7 +277,7 @@ class CuentasClaras:
         if suma_sueldos < total_a_pagar:
             messagebox.showerror(message="El monto total a pagar no puede superar la suma de los sueldos", 
                                title="Error")
-            self.limpiar()
+            #self.limpiar()
             return
             
         primer_porcentaje = (sueldo1 * 100) / suma_sueldos
@@ -319,8 +327,7 @@ class CuentasClaras:
         
     def reemplazar_punto_y_coma(self, entrada):
         result = entrada.get()
-        result = result.replace(',', '.')
-        result = result.replace('.', '')
+        result = result.replace('.', '').replace(',', '.')
         return result
         
     def limpiar(self):
@@ -352,6 +359,32 @@ class CuentasClaras:
                 self.etcinco.configure(text_color="white")  
             for entrada in [self.cajauno, self.cajados, self.cajatres]:
                 entrada.configure(text_color="black")
+
+
+    def copiar(self, event):
+        try:
+            self.ventana.clipboard_clear()
+            self.ventana.clipboard_append(event.widget.selection_get())
+        except Exception:
+            pass  # Si no hay selección, no hacer nada
+        return "break"
+
+    def cortar(self, event):
+        try:
+            self.copiar(event)
+            event.widget.delete("sel.first", "sel.last")
+        except Exception:
+            pass  # Si no hay selección, no hacer nada
+        return "break"
+
+    def pegar(self, event):
+        try:
+            texto = self.ventana.clipboard_get()
+            event.widget.insert("insert", texto)
+        except Exception:
+            pass  # Si no hay texto en el portapapeles, no hacer nada
+        return "break"
+
                 
     @staticmethod
     def solo_numeros(char):
